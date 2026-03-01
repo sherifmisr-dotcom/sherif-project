@@ -1,0 +1,828 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Users & Authentication
+// ============================================
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  fullName     String?  @map("full_name")
+  email        String?  @unique
+  passwordResetToken   String?  @map("password_reset_token")
+  passwordResetExpires DateTime? @map("password_reset_expires")
+  isActive     Boolean  @default(true) @map("is_active")
+  isAdmin      Boolean  @default(false) @map("is_admin")
+  isSuperAdmin Boolean  @default(false) @map("is_super_admin")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  auditLogs             AuditLog[]
+  createdVouchers       Voucher[]         @relation("CreatedVouchers")
+  approvedPayrolls      PayrollRun[]      @relation("ApprovedPayrolls")
+  createdCustomsBatches CustomsFeeBatch[]
+  permissions           UserPermission[]
+
+  @@index([username])
+  @@map("users")
+}
+
+// ============================================
+// Permissions System
+// ============================================
+
+model Permission {
+  id               String   @id @default(uuid())
+  code             String   @unique
+  screen           String
+  subScreen        String?  @map("sub_screen")
+  action           String
+  nameAr           String   @map("name_ar")
+  nameEn           String   @map("name_en")
+  description      String?
+  category         String
+  isViewPermission Boolean  @default(false) @map("is_view_permission")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  // Relations
+  users UserPermission[]
+
+  @@index([code])
+  @@index([screen])
+  @@index([category])
+  @@map("permissions")
+}
+
+model UserPermission {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  permissionId String   @map("permission_id")
+  grantedAt    DateTime @default(now()) @map("granted_at")
+  grantedBy    String?  @map("granted_by")
+
+  // Relations
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permissionId])
+  @@index([userId])
+  @@index([permissionId])
+  @@map("user_permissions")
+}
+
+model PermissionAuditLog {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  permissionId String   @map("permission_id")
+  action       String
+  performedBy  String   @map("performed_by")
+  performedAt  DateTime @default(now()) @map("performed_at")
+  ipAddress    String?  @map("ip_address")
+  userAgent    String?  @map("user_agent")
+
+  @@index([userId])
+  @@index([performedAt])
+  @@map("permission_audit_logs")
+}
+
+// ============================================
+// Customer Groups (مجموعات العملاء)
+// ============================================
+
+model CustomerGroup {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  customers Customer[]
+
+  @@map("customer_groups")
+}
+
+// ============================================
+// Customers
+// ============================================
+
+model Customer {
+  id             String        @id @default(uuid())
+  name           String        @unique
+  phone          String?
+  email          String?
+  address        String?
+  type           CustomerType?
+  groupId        String?       @map("group_id")
+  openingBalance Decimal?      @map("opening_balance") @db.Decimal(18, 6)
+  openingSide    BalanceSide?  @map("opening_side")
+  isActive       Boolean       @default(true) @map("is_active")
+  deletedAt      DateTime?     @map("deleted_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  invoices Invoice[]
+  group    CustomerGroup? @relation(fields: [groupId], references: [id])
+
+  @@map("customers")
+}
+
+enum CustomerType {
+  EXPORT
+  IMPORT
+  TRANSIT
+  FREE
+}
+
+enum BalanceSide {
+  DEBIT
+  CREDIT
+}
+
+// ============================================
+// Invoices
+// ============================================
+
+model Invoice {
+  id           String      @id @default(uuid())
+  code         String      @unique
+  type         InvoiceType
+  customerId   String      @map("customer_id")
+  customsNo    String?     @map("customs_no")
+  date         DateTime
+  total        Decimal     @db.Decimal(18, 6)
+  currency     String      @default("SAR")
+  exchangeRate Decimal     @default(1) @map("exchange_rate") @db.Decimal(18, 6)
+  notes        String?
+
+  // Optional fields
+  driverName  String? @map("driver_name")
+  shipperName String? @map("shipper_name")
+  vehicleNo   String? @map("vehicle_no")
+  cargoType   String? @map("cargo_type")
+
+  // VAT (for import invoices)
+  vatEnabled Boolean  @default(false) @map("vat_enabled")
+  vatRate    Decimal? @map("vat_rate") @db.Decimal(5, 2)
+  vatAmount  Decimal? @map("vat_amount") @db.Decimal(18, 6)
+
+  // Customs fee batch link (for IMPORT and TRANSIT only)
+  customsFeeBatchItemId String? @map("customs_fee_batch_item_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  customer            Customer             @relation(fields: [customerId], references: [id])
+  items               InvoiceItem[]
+  customsFeeBatchItem CustomsFeeBatchItem? @relation(fields: [customsFeeBatchItemId], references: [id], onDelete: SetNull)
+
+  @@unique([type, customsNo, date], name: "unique_customs_no_per_year")
+  @@map("invoices")
+}
+
+enum InvoiceType {
+  EXPORT
+  IMPORT
+  TRANSIT
+  FREE
+}
+
+model InvoiceItem {
+  id          String  @id @default(uuid())
+  invoiceId   String  @map("invoice_id")
+  description String
+  unitPrice   Decimal @default(0) @map("unit_price") @db.Decimal(18, 6)
+  quantity    Decimal @default(1) @db.Decimal(18, 6)
+  vatRate     Decimal @default(0) @map("vat_rate") @db.Decimal(5, 2)
+  amount      Decimal @db.Decimal(18, 6)
+  hasVat      Boolean @default(false) @map("has_vat")
+  sortOrder   Int     @default(0) @map("sort_order")
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_items")
+}
+
+// ============================================
+// Agents (الوكلاء الملاحيين)
+// ============================================
+
+model Agent {
+  id             String       @id @default(uuid())
+  name           String       @unique
+  openingBalance Decimal?     @map("opening_balance") @db.Decimal(18, 6)
+  openingSide    BalanceSide? @map("opening_side")
+  isActive       Boolean      @default(true) @map("is_active")
+  deletedAt      DateTime?    @map("deleted_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  vessels        Vessel[]
+  trips          Trip[]
+  additionalFees AdditionalFee[]
+
+  @@map("agents")
+}
+
+model Vessel {
+  id        String   @id @default(uuid())
+  agentId   String   @map("agent_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  agent          Agent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  trips          Trip[]
+  additionalFees AdditionalFee[]
+
+  @@unique([agentId, name])
+  @@map("vessels")
+}
+
+model Trip {
+  id                   String   @id @default(uuid())
+  agentId              String   @map("agent_id")
+  vesselId             String?  @map("vessel_id")
+  tripNumber           String?  @map("trip_number")
+  date                 DateTime
+  costType             String   @default("DETAILED") @map("cost_type")
+  trucksWithFreight    Int      @default(0) @map("trucks_with_freight")
+  trucksWithoutFreight Int      @default(0) @map("trucks_without_freight")
+  transitTrucksWithFreight    Int @default(0) @map("transit_trucks_with_freight")
+  transitTrucksWithoutFreight Int @default(0) @map("transit_trucks_without_freight")
+  freightPerTruck      Decimal  @default(0) @map("freight_per_truck") @db.Decimal(18, 6)
+  portFeesPerTruck     Decimal  @default(0) @map("port_fees_per_truck") @db.Decimal(18, 6)
+  transitPortFeesPerTruck Decimal @default(0) @map("transit_port_fees_per_truck") @db.Decimal(18, 6)
+  quantity             Int      @default(0)
+  unitPrice            Decimal  @default(0) @map("unit_price") @db.Decimal(18, 6)
+  totalAmount          Decimal  @map("total_amount") @db.Decimal(18, 6)
+  notes                String?
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  agent  Agent   @relation(fields: [agentId], references: [id])
+  vessel Vessel? @relation(fields: [vesselId], references: [id])
+
+  @@map("trips")
+}
+
+model AdditionalFee {
+  id         String   @id @default(uuid())
+  agentId    String   @map("agent_id")
+  vesselId   String?  @map("vessel_id")
+  date       DateTime
+  feeType    String   @map("fee_type")
+  quantity   Int      @default(1)
+  amount     Decimal  @db.Decimal(18, 6)
+  policyNo   String?  @map("policy_no")
+  tripNumber String?  @map("trip_number")
+  details    String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  agent  Agent   @relation(fields: [agentId], references: [id])
+  vessel Vessel? @relation(fields: [vesselId], references: [id])
+
+  @@map("additional_fees")
+}
+
+// ============================================
+// Accounts - Banks
+// ============================================
+
+model Bank {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  accounts BankAccount[]
+
+  @@map("banks")
+}
+
+model BankAccount {
+  id                 String    @id @default(uuid())
+  bankId             String    @map("bank_id")
+  accountNo          String    @unique @map("account_no")
+  openingBalance     Decimal   @default(0) @map("opening_balance") @db.Decimal(18, 6)
+  currentBalance     Decimal   @default(0) @map("current_balance") @db.Decimal(18, 6)
+  openingBalanceDate DateTime  @default(now()) @map("opening_balance_date")
+  carryForwardNote   String?   @map("carry_forward_note")
+  isInitialBalance   Boolean   @default(true) @map("is_initial_balance")
+  isActive           Boolean   @default(true) @map("is_active")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  bank              Bank              @relation(fields: [bankId], references: [id])
+  vouchers          Voucher[]
+  bankTransactions  BankTransaction[]
+  customsFeeBatches CustomsFeeBatch[]
+
+  @@map("bank_accounts")
+}
+
+// ============================================
+// Accounts - Treasury
+// ============================================
+
+model Treasury {
+  id             String    @id @default("single_row")
+  currentBalance Decimal   @default(0) @map("current_balance") @db.Decimal(18, 6)
+  openingBalance Decimal?  @map("opening_balance") @db.Decimal(18, 6)
+  openingSetAt   DateTime? @map("opening_set_at")
+  openingSetBy   String?   @map("opening_set_by")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@map("treasury")
+}
+
+model TreasuryTransaction {
+  id           String   @id @default(uuid())
+  date         DateTime
+  type         TxType
+  amount       Decimal  @db.Decimal(18, 6)
+  note         String?
+  balanceAfter Decimal  @map("balance_after") @db.Decimal(18, 6)
+  voucherId    String?  @map("voucher_id")
+  createdBy    String   @map("created_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  voucher Voucher? @relation("TreasuryTransactions", fields: [voucherId], references: [id])
+
+  @@map("treasury_transactions")
+}
+
+enum TxType {
+  IN
+  OUT
+}
+
+// ============================================
+// Vouchers (السندات)
+// ============================================
+
+model Voucher {
+  id              String        @id @default(uuid())
+  code            String        @unique
+  type            VoucherType
+  partyType       PartyType     @map("party_type")
+  partyId         String?       @map("party_id")
+  partyName       String?       @map("party_name") // For "OTHER" party type
+  method          PaymentMethod
+  bankAccountId   String?       @map("bank_account_id")
+  referenceNumber String?       @map("reference_number") // Bank transfer reference
+  amount          Decimal       @db.Decimal(18, 6)
+  note            String?
+  date            DateTime
+  attachments     Json? // Array of file paths
+  categoryId      String?       @map("category_id") // For payment vouchers
+  sourceType      String?       @map("source_type") // For internal transfers
+  sourceAccountId String?       @map("source_account_id")
+  destType        String?       @map("dest_type")
+  destAccountId   String?       @map("dest_account_id")
+
+  // Bank transfer fees fields
+  hasBankFees          Boolean   @default(false) @map("has_bank_fees")
+  actualAmountReceived Decimal?  @map("actual_amount_received") @db.Decimal(18, 6)
+  bankFeeAmount        Decimal?  @map("bank_fee_amount") @db.Decimal(18, 6)
+  linkedVoucherId      String?   @unique @map("linked_voucher_id")
+  groupReceiptId       String?   @map("group_receipt_id")
+
+  createdBy       String        @map("created_by")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  creator              User                  @relation("CreatedVouchers", fields: [createdBy], references: [id])
+  bankAccount          BankAccount?          @relation(fields: [bankAccountId], references: [id])
+  category             ExpenseCategory?      @relation(fields: [categoryId], references: [id])
+  treasuryTransactions TreasuryTransaction[] @relation("TreasuryTransactions")
+  bankTransactions     BankTransaction[]
+  customsFeeBatch      CustomsFeeBatch?
+  linkedVoucher        Voucher?              @relation("LinkedVouchers", fields: [linkedVoucherId], references: [id])
+  linkedByVoucher      Voucher?              @relation("LinkedVouchers")
+
+  @@map("vouchers")
+}
+
+enum VoucherType {
+  RECEIPT
+  PAYMENT
+  INTERNAL_TRANSFER
+}
+
+enum PartyType {
+  CUSTOMER
+  CUSTOMER_GROUP
+  EMPLOYEE
+  AGENT
+  OTHER
+  CUSTOMS
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+}
+
+model ExpenseCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  isProtected Boolean  @default(false) @map("is_protected")
+  sortOrder   Int      @default(999) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  vouchers Voucher[]
+
+  @@map("expense_categories")
+}
+
+model InvoiceItemTemplate {
+  id          String   @id @default(uuid())
+  description String   @unique
+  vatRate     Decimal? @default(0) @map("vat_rate") @db.Decimal(5, 2)
+  isActive    Boolean  @default(true) @map("is_active")
+  isProtected Boolean  @default(false) @map("is_protected")
+  sortOrder   Int      @default(999) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("invoice_item_templates")
+}
+
+model IncomeStatementSettings {
+  id                     String   @id @default("single_row")
+  revenueItemTemplateIds String[] @map("revenue_item_template_ids")
+  expenseCategoryIds     String[] @map("expense_category_ids")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  @@map("income_statement_settings")
+}
+
+// ============================================
+// Employees & Payroll
+// ============================================
+
+model Employee {
+  id         String         @id @default(uuid())
+  name       String
+  department String?
+  startDate  DateTime?      @map("start_date")
+  baseSalary Decimal        @map("base_salary") @db.Decimal(18, 6)
+  allowances Decimal        @default(0) @db.Decimal(18, 6)
+  status     EmployeeStatus @default(ACTIVE)
+  isActive   Boolean        @default(true) @map("is_active")
+  deletedAt  DateTime?      @map("deleted_at")
+  createdAt  DateTime       @default(now()) @map("created_at")
+  updatedAt  DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  payrollItems PayrollItem[]
+
+  @@map("employees")
+}
+
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model PayrollRun {
+  id         String        @id @default(uuid())
+  month      DateTime // First day of the month
+  status     PayrollStatus @default(DRAFT)
+  totalNet   Decimal       @map("total_net") @db.Decimal(18, 6)
+  approvedBy String?       @map("approved_by")
+  approvedAt DateTime?     @map("approved_at")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  approver User?         @relation("ApprovedPayrolls", fields: [approvedBy], references: [id])
+  items    PayrollItem[]
+
+  @@unique([month])
+  @@map("payroll_runs")
+}
+
+enum PayrollStatus {
+  DRAFT
+  APPROVED
+}
+
+model PayrollItem {
+  id         String  @id @default(uuid())
+  runId      String  @map("run_id")
+  employeeId String  @map("employee_id")
+  base       Decimal @db.Decimal(18, 6)
+  allowances Decimal @db.Decimal(18, 6)
+  deductions Decimal @db.Decimal(18, 6)
+  net        Decimal @db.Decimal(18, 6)
+  voucherId  String? @map("voucher_id") // Link to payment voucher after approval
+
+  // Relations
+  run      PayrollRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  employee Employee   @relation(fields: [employeeId], references: [id])
+
+  @@unique([runId, employeeId])
+  @@map("payroll_items")
+}
+
+// ============================================
+// Ledger (Central Accounting)
+// ============================================
+
+model LedgerEntry {
+  id            String     @id @default(uuid())
+  sourceType    SourceType @map("source_type")
+  sourceId      String     @map("source_id")
+  debitAccount  String     @map("debit_account")
+  creditAccount String     @map("credit_account")
+  amount        Decimal    @db.Decimal(18, 6)
+  currency      String     @default("SAR")
+  exchangeRate  Decimal    @default(1) @map("exchange_rate") @db.Decimal(18, 6)
+  description   String?
+  createdAt     DateTime   @default(now()) @map("created_at")
+
+  @@map("ledger_entries")
+}
+
+enum SourceType {
+  VOUCHER
+  INVOICE
+  PAYROLL
+  TRIP
+  ADDITIONAL_FEE
+}
+
+// ============================================
+// Audit Logs
+// ============================================
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  action    String
+  entity    String
+  entityId  String   @map("entity_id")
+  before    Json?
+  after     Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+// ============================================
+// Settings
+// ============================================
+
+model CompanySetting {
+  id         String   @id @default("single_row")
+  nameAr     String?  @map("name_ar")
+  nameEn     String?  @map("name_en")
+  activityAr String?  @map("activity_ar")
+  activityEn String?  @map("activity_en")
+  taxNumber  String?  @map("tax_number")
+  licenseNo  String?  @map("license_no")
+  email      String?
+  phone      String?
+  addressAr  String?  @map("address_ar")
+  addressEn  String?  @map("address_en")
+  logoPath   String?  @map("logo_path")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("company_settings")
+}
+
+model AppSetting {
+  id                      String   @id @default("single_row")
+  fontSize                Int      @default(14) @map("font_size")
+  theme                   String   @default("light")
+  language                String   @default("ar")
+  dateFormat              String   @default("dd/MM/yyyy") @map("date_format")
+  defaultCurrency         String   @default("SAR") @map("default_currency")
+  preventNegativeTreasury Boolean  @default(true) @map("prevent_negative_treasury")
+  preventNegativeBank     Boolean  @default(true) @map("prevent_negative_bank")
+  autoBackupEnabled       Boolean  @default(false) @map("auto_backup_enabled")
+  autoBackupFrequency     String   @default("DAILY") @map("auto_backup_frequency")
+  autoBackupTime          String   @default("02:00") @map("auto_backup_time")
+  backupRetentionDays     Int      @default(30) @map("backup_retention_days")
+  defaultFreightPerTruck  Decimal  @default(0) @map("default_freight_per_truck") @db.Decimal(18, 6)
+  defaultPortFeesPerTruck Decimal  @default(0) @map("default_port_fees_per_truck") @db.Decimal(18, 6)
+  defaultTransitPortFees  Decimal  @default(0) @map("default_transit_port_fees") @db.Decimal(18, 6)
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  @@map("app_settings")
+}
+
+model PrintSetting {
+  id              String   @id @default("single_row")
+  headerRightAr   String?  @map("header_right_ar")
+  headerLeftEn    String?  @map("header_left_en")
+  numberingFormat String   @default("{TYPE}-{YY}-{0001}") @map("numbering_format")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("print_settings")
+}
+
+// ============================================
+// Customs Fee Batches
+// ============================================
+
+model CustomsFeeBatch {
+  id            String        @id @default(uuid())
+  date          DateTime
+  totalAmount   Decimal       @map("total_amount") @db.Decimal(18, 6)
+  method        PaymentMethod
+  bankAccountId String?       @map("bank_account_id")
+  voucherId     String        @unique @map("voucher_id")
+  notes         String?
+  createdBy     String        @map("created_by")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  bankAccount   BankAccount?          @relation(fields: [bankAccountId], references: [id])
+  voucher       Voucher               @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  createdByUser User                  @relation(fields: [createdBy], references: [id])
+  items         CustomsFeeBatchItem[]
+
+  @@map("customs_fee_batches")
+}
+
+model CustomsFeeBatchItem {
+  id        String  @id @default(uuid())
+  batchId   String  @map("batch_id")
+  customsNo String  @map("customs_no")
+  amount    Decimal @db.Decimal(18, 6)
+  sortOrder Int     @default(0) @map("sort_order")
+
+  // Relations
+  batch    CustomsFeeBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+
+  @@map("customs_fee_batch_items")
+}
+
+// ============================================
+// Notifications
+// ============================================
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  type      String
+  title     String
+  message   String
+  data      Json?
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ============================================
+// Bank Transactions
+// ============================================
+
+model BankTransaction {
+  id            String      @id @default(uuid())
+  date          DateTime
+  type          TxType
+  amount        Decimal     @db.Decimal(18, 6)
+  description   String?
+  balanceAfter  Decimal     @map("balance_after") @db.Decimal(18, 6)
+  bankAccountId String      @map("bank_account_id")
+  voucherId     String?     @map("voucher_id")
+  createdBy     String      @map("created_by")
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  bankAccount BankAccount @relation(fields: [bankAccountId], references: [id], onDelete: Cascade)
+  voucher     Voucher?    @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@map("bank_transactions")
+}
+
+// ============================================
+// Treasury Settings
+// ============================================
+
+model TreasurySettings {
+  id                 String   @id @default("single_row")
+  openingBalance     Decimal  @default(0) @map("opening_balance") @db.Decimal(18, 6)
+  openingBalanceDate DateTime @default(now()) @map("opening_balance_date")
+  carryForwardNote   String?  @map("carry_forward_note")
+  isInitialBalance   Boolean  @default(true) @map("is_initial_balance")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("treasury_settings")
+}
+
+// ============================================
+// Carry Forward Settings & Logs
+// ============================================
+
+model CarryForwardSettings {
+  id                        String    @id @default("single_row")
+  autoCarryForwardEnabled   Boolean   @default(false) @map("auto_carry_forward_enabled")
+  carryForwardDay           Int       @default(1) @map("carry_forward_day")
+  carryForwardType          String    @default("MONTH") @map("carry_forward_type")
+  notifyBeforeCarryForward  Boolean   @default(true) @map("notify_before_carry_forward")
+  notifyDaysBefore          Int       @default(3) @map("notify_days_before")
+  lastAutoCarryForward      DateTime? @map("last_auto_carry_forward")
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
+
+  @@map("carry_forward_settings")
+}
+
+model CarryForwardLog {
+  id            String   @id @default(uuid())
+  type          String
+  entityId      String?  @map("entity_id")
+  executionType String   @map("execution_type")
+  executedBy    String?  @map("executed_by")
+  periodType    String   @map("period_type")
+  fromDate      DateTime @map("from_date")
+  toDate        DateTime @map("to_date")
+  balanceAmount Decimal  @map("balance_amount") @db.Decimal(18, 6)
+  status        String
+  errorMessage  String?  @map("error_message")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("carry_forward_logs")
+}
+
+// ============================================
+// Backups
+// ============================================
+
+enum BackupType {
+  MANUAL
+  AUTOMATIC
+  UPLOADED
+}
+
+enum BackupStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model Backup {
+  id          String       @id @default(uuid())
+  filename    String       @unique
+  filepath    String
+  size        BigInt
+  type        BackupType   @default(MANUAL)
+  status      BackupStatus @default(COMPLETED)
+  createdBy   String?      @map("created_by")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  description String?
+
+  @@map("backups")
+}
+
+// ============================================
+// Agent Setting Logs
+// ============================================
+
+model AgentSettingLog {
+  id        String   @id @default(uuid())
+  date      DateTime @default(now())
+  freight   Decimal  @db.Decimal(18, 6)
+  portFees  Decimal  @map("port_fees") @db.Decimal(18, 6)
+  transitPortFees Decimal @default(0) @map("transit_port_fees") @db.Decimal(18, 6)
+  isCurrent Boolean  @default(true) @map("is_current")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("agent_setting_logs")
+}

@@ -1,0 +1,14 @@
+{
+    "type": "EXPORT",
+    "customerId": "test-customer-id",
+    "date": "2024-12-07",
+    "items": [
+        {
+            "description": "Test Item",
+            "unitPrice": 100,
+            "quantity": 1,
+            "vatRate": 15,
+            "amount": 115
+        }
+    ]
+}
