@@ -173,7 +173,7 @@ export default function PrintLayout({ children }: PrintLayoutProps) {
           <div className="w-24 h-24 flex items-center justify-center">
             {companySettings.logoPath ? (
               <img
-                src={`${API_BASE}${companySettings.logoPath}`}
+                src={`http://localhost:3000${companySettings.logoPath}`}
                 alt="Company Logo"
                 className="max-w-full max-h-full object-contain"
               />

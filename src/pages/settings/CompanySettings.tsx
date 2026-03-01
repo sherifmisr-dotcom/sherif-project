@@ -63,7 +63,7 @@ export default function CompanySettings() {
                 });
 
                 if (data.logoPath) {
-                    setCurrentLogo(`${API_BASE}${data.logoPath}`);
+                    setCurrentLogo(`http://localhost:3000${data.logoPath}`);
                 }
             }
         } catch (error) {
@@ -111,7 +111,7 @@ export default function CompanySettings() {
             const response = await apiClient.uploadCompanyLogo(formData);
             const data = response.data || response;
 
-            setCurrentLogo(`${API_BASE}${data.logoPath}`);
+            setCurrentLogo(`http://localhost:3000${data.logoPath}`);
             setLogoFile(null);
             setLogoPreview(null);
 
