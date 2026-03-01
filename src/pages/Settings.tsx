@@ -246,8 +246,10 @@ export default function Settings() {
                 variants={itemVariants}
                 whileHover={isDev ? {} : { y: -3 }}
                 whileTap={isDev ? {} : { scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                 onClick={() => !isDev && setSelectedSection(section.id)}
-                className={`relative bg-white dark:bg-gray-800 rounded-2xl p-6 text-right border border-gray-100 dark:border-gray-700 shadow-sm transition-all duration-300 group overflow-hidden h-full flex flex-col hover:shadow-xl ${section.shadow} ${isDev ? 'cursor-not-allowed' : ''}`}
+                style={{ willChange: 'transform' }}
+                className={`relative bg-white dark:bg-gray-800 rounded-2xl p-6 text-right border border-gray-100 dark:border-gray-700 shadow-sm transition-shadow duration-300 group overflow-hidden h-full flex flex-col hover:shadow-xl ${section.shadow} ${isDev ? 'cursor-not-allowed' : ''}`}
               >
                 {/* Subtle decorative blob */}
                 <div className={`absolute -left-10 -top-10 w-32 h-32 bg-gradient-to-br ${section.gradient} rounded-full opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-300 blur-2xl`} />
