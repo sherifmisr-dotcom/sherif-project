@@ -45,5 +45,5 @@ EXPOSE ${PORT:-3000}
 
 ENV NODE_ENV=production
 
-# Run migrations then start application
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+# Run migrations, seed data, then start application
+CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && node dist/main"]
