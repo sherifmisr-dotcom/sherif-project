@@ -302,7 +302,7 @@ export default function CustomerStatementPrint({
                 </div>
                 <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg flex flex-col items-center justify-center">
                   <span className="text-xs text-gray-500 mb-1">إجمالي الدائن (سداد)</span>
-                  <span className="text-lg font-bold font-mono text-green-600">{formatCurrency(totalCredit)}</span>
+                  <span className="text-lg font-bold font-mono text-gray-600">{formatCurrency(totalCredit)}</span>
                 </div>
                 <div className="bg-blue-900 text-white p-4 rounded-lg flex flex-col items-center justify-center shadow">
                   <span className="text-sm opacity-80 mb-1">الرصيد المستحق</span>

@@ -974,6 +974,7 @@ export default function NewTrip() {
                   {...register('notes')}
                   rows={3}
                   className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-white transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none"
+                  placeholder="مثال: رحلة العبارة بوسيدون رقم 10"
                 />
               </div>
 
@@ -1054,7 +1055,7 @@ export default function NewTrip() {
 
               {viewTrip.notes && (
                 <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">ملاحظات</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">التفاصيل</p>
                   <p className="text-gray-900 dark:text-white">{viewTrip.notes}</p>
                 </div>
               )}
