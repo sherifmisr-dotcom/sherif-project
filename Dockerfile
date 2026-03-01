@@ -7,6 +7,11 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+
+# Vite inlines env vars at build time, so we need ARG to receive it from Railway
+ARG VITE_API_BASE
+ENV VITE_API_BASE=$VITE_API_BASE
+
 RUN npm run build
 
 # ---- Production Stage ----
