@@ -1,6 +1,8 @@
 ﻿import React from 'react';
 import ModalOverlay from '@/components/ui/ModalOverlay';
 
+const API_BASE = import.meta.env.VITE_API_BASE || '';
+
 // --- 1. تعريف واجهات البيانات (Types) ---
 export interface Transaction {
     id: string;
@@ -199,7 +201,7 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
                                 <div className="print-logo flex items-center justify-center" style={{ width: '80px', height: '80px', flexShrink: 0 }}>
                                     {data.logoPath ? (
                                         <img
-                                            src={`http://localhost:3000${data.logoPath}`}
+                                            src={`${API_BASE}${data.logoPath}`}
                                             alt="Company Logo"
                                             className="max-w-full max-h-full object-contain"
                                         />
@@ -298,11 +300,11 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
                             {/* Summary Boxes */}
                             <div className="print-summary-grid mt-5 summary-section mb-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
                                 <SummaryBox title="إجمالي الدائن" value={data.totalCredit} colorClass="text-blue-600" />
-                                <SummaryBox title="إجمالي المدين" value={data.totalDebit} colorClass="text-blue-600" />
+                                <SummaryBox title="إجمالي المدين (سداد)" value={data.totalDebit} colorClass="text-green-600" />
 
                                 <div className={`p-4 rounded-md text-center border ${data.finalBalance >= 0 ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
                                     <span className="block text-xs opacity-80 mb-1 text-gray-700">الرصيد النهائي المستحق</span>
-                                    <span className={`block text-lg font-bold font-mono ${data.finalBalance >= 0 ? 'text-red-600' : 'text-green-600'}`}>{formatNumber(data.finalBalance)} SAR</span>
+                                    <span className={`block text-lg font-bold font-mono ${data.finalBalance >= 0 ? 'text-red-600' : 'text-green-600'}`}>SAR {formatNumber(Math.abs(data.finalBalance))}</span>
                                 </div>
                             </div>
 
