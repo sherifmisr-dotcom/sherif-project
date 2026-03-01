@@ -199,14 +199,15 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
                                 <div className="bg-slate-50 p-4 rounded-md border border-slate-200 border-r-4 border-r-blue-900">
                                     <h3 className="text-sm font-bold text-blue-900 mb-2 pb-1 border-b border-gray-300">بيانات الوكيل</h3>
                                     <InfoRow label="الاسم" value={data.agentName} />
-                                    <InfoRow label="الرقم الضريبي" value={data.agentTaxNumber} />
                                 </div>
 
                                 {/* Box 2: Period */}
                                 <div className="bg-slate-50 p-4 rounded-md border border-slate-200 border-r-4 border-r-blue-900">
                                     <h3 className="text-sm font-bold text-blue-900 mb-2 pb-1 border-b border-gray-300">فترة الكشف</h3>
-                                    <InfoRow label="من تاريخ" value={data.startDate} />
-                                    <InfoRow label="إلى تاريخ" value={data.endDate} />
+                                    <div className="flex items-center gap-4 text-[13px]">
+                                        <span><span className="text-gray-500">من:</span> <span className="font-bold text-gray-900">{data.startDate}</span></span>
+                                        <span><span className="text-gray-500">إلى:</span> <span className="font-bold text-gray-900">{data.endDate}</span></span>
+                                    </div>
                                 </div>
                             </div>
 
