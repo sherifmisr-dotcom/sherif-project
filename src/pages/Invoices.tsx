@@ -128,7 +128,8 @@ export default function Invoices() {
               whileHover={{ y: -5, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => navigate(type.path)}
-              className={`relative bg-white dark:bg-gray-800 rounded-2xl p-5 text-right border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden ${type.shadow}`}
+              style={{ willChange: 'transform' }}
+              className={`relative bg-white dark:bg-gray-800 rounded-2xl p-5 text-right border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-shadow duration-300 group overflow-hidden ${type.shadow}`}
             >
               {/* Decorative Background Blob */}
               <div className={`absolute -left-16 -top-16 w-32 h-32 bg-gradient-to-br ${type.gradient} rounded-full opacity-5 group-hover:opacity-10 transition-opacity duration-300 blur-2xl`} />
