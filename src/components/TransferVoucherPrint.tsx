@@ -274,7 +274,7 @@ export default function TransferVoucherPrint({ transfer, bankAccounts, onClose }
                                 <div className="w-20 h-20 flex items-center justify-center">
                                     {companySettings?.logoPath ? (
                                         <img
-                                            src={`http://localhost:3000${companySettings.logoPath}`}
+                                            src={`${API_BASE}${companySettings.logoPath}`}
                                             alt="Company Logo"
                                             className="max-w-full max-h-full object-contain"
                                         />
