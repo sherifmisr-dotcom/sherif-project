@@ -763,6 +763,7 @@ export class AgentsService {
             trips: trips.map(trip => ({
                 id: trip.id,
                 date: trip.date,
+                tripNumber: trip.tripNumber,
                 quantity: trip.quantity,
                 totalAmount: parseFloat(trip.totalAmount.toString()),
                 notes: trip.notes,
@@ -775,6 +776,7 @@ export class AgentsService {
                 id: fee.id,
                 date: fee.date,
                 feeType: fee.feeType,
+                tripNumber: fee.tripNumber,
                 quantity: fee.quantity || 1,
                 amount: parseFloat(fee.amount.toString()),
                 vessel: fee.vessel ? {
@@ -784,6 +786,7 @@ export class AgentsService {
             })),
             vouchers: vouchers.map(v => ({
                 id: v.id,
+                code: v.code,
                 date: v.date,
                 amount: parseFloat(v.amount.toString()),
                 notes: v.note,
