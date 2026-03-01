@@ -723,7 +723,7 @@ export default function AdditionalFees() {
                   {...register('details')}
                   rows={3}
                   className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:text-white transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 resize-none"
-                  placeholder="مثال: رحلة العبارة بوسيدون رقم 10"
+                  placeholder="مثال: رسوم اضافية رحلة العبارة بوسيدون رقم 10"
                 />
               </div>
 
