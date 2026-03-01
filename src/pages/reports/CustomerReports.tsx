@@ -457,10 +457,10 @@ export default function CustomerReports() {
                     </span>
                     <span className="text-sm font-medium text-gray-500 dark:text-gray-400">ريال</span>
                     <span className={`text-xs px-2 py-1 rounded-full ${openingBalance >= 0
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                      : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
+                      ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                      : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
                       }`}>
-                      {openingBalance >= 0 ? 'دائن' : 'مدين'}
+                      {openingBalance >= 0 ? 'مدين' : 'دائن'}
                     </span>
                   </div>
                 </div>
@@ -472,20 +472,20 @@ export default function CustomerReports() {
                   </span>
                 </div>
 
-                <div className={`p-6 text-center ${closingBalance >= 0 ? 'bg-green-50/50 dark:bg-green-900/10' : 'bg-red-50/50 dark:bg-red-900/10'
+                <div className={`p-6 text-center ${closingBalance >= 0 ? 'bg-red-50/50 dark:bg-red-900/10' : 'bg-green-50/50 dark:bg-green-900/10'
                   }`}>
                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">الرصيد الختامي</p>
                   <div className="flex items-center justify-center gap-2">
-                    <span className={`text-3xl font-bold ${closingBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                    <span className={`text-3xl font-bold ${closingBalance >= 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
                       }`}>
                       {Math.abs(closingBalance).toFixed(2)}
                     </span>
                     <span className="text-sm font-medium text-gray-500 dark:text-gray-400">ريال</span>
                     <span className={`text-xs px-2 py-1 rounded-full ${closingBalance >= 0
-                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                      : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                      ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                      : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
                       }`}>
-                      {closingBalance >= 0 ? 'دائن' : 'مدين'}
+                      {closingBalance >= 0 ? 'مدين' : 'دائن'}
                     </span>
                   </div>
                 </div>
@@ -562,7 +562,7 @@ export default function CustomerReports() {
                       <td className="px-6 py-4 text-left text-sm text-green-600 dark:text-green-400 tabular-nums">
                         {totalCredit.toFixed(2)}
                       </td>
-                      <td className={`px-6 py-4 text-left text-sm tabular-nums ${closingBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} dir="ltr">
+                      <td className={`px-6 py-4 text-left text-sm tabular-nums ${closingBalance >= 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`} dir="ltr">
                         {closingBalance.toFixed(2)}
                       </td>
                     </tr>
