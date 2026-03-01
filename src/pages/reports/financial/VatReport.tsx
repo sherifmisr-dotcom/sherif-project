@@ -354,9 +354,19 @@ export default function VatReport() {
                                 {/* Collapsible Content */}
                                 <div className={`transition-all duration-300 ease-in-out overflow-hidden ${showInvoiceDetails ? 'max-h-[700px] opacity-100 mt-3' : 'max-h-0 opacity-0'}`}>
                                     <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                                        {/* Scrollable Table Container - shows ~12 rows then scrolls */}
+                                        {/* Table with fixed column widths */}
                                         <div className="overflow-auto max-h-[540px] scrollbar-thin relative">
-                                            <table className="w-full">
+                                            <table className="w-full" style={{ tableLayout: 'fixed' }}>
+                                                <colgroup>
+                                                    <col style={{ width: '12%' }} />
+                                                    <col style={{ width: '10%' }} />
+                                                    <col style={{ width: '22%' }} />
+                                                    <col style={{ width: '8%' }} />
+                                                    <col style={{ width: '14%' }} />
+                                                    <col style={{ width: '8%' }} />
+                                                    <col style={{ width: '12%' }} />
+                                                    <col style={{ width: '14%' }} />
+                                                </colgroup>
                                                 <thead className="sticky top-0 z-10">
                                                     <tr className="bg-gray-50 dark:bg-gray-700/50 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
                                                         <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">رقم الفاتورة</th>
@@ -381,7 +391,7 @@ export default function VatReport() {
                                                             <tr key={inv.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30">
                                                                 <td className="py-3 px-4 text-sm font-mono font-semibold text-blue-600 dark:text-blue-400">{inv.code}</td>
                                                                 <td className="py-3 px-4 text-sm text-gray-700 dark:text-gray-300">{formatDate(inv.date)}</td>
-                                                                <td className="py-3 px-4 text-sm text-gray-900 dark:text-white">{inv.customerName}</td>
+                                                                <td className="py-3 px-4 text-sm text-gray-900 dark:text-white truncate">{inv.customerName}</td>
                                                                 <td className="py-3 px-4">
                                                                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
                                                                         {TYPE_LABELS[inv.type] || inv.type}
@@ -400,10 +410,20 @@ export default function VatReport() {
                                             </table>
                                         </div>
 
-                                        {/* Totals Footer - always visible outside scroll */}
+                                        {/* Totals Footer - same column widths */}
                                         {data.invoices.length > 0 && (
                                             <div className="border-t-2 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700">
-                                                <table className="w-full">
+                                                <table className="w-full" style={{ tableLayout: 'fixed' }}>
+                                                    <colgroup>
+                                                        <col style={{ width: '12%' }} />
+                                                        <col style={{ width: '10%' }} />
+                                                        <col style={{ width: '22%' }} />
+                                                        <col style={{ width: '8%' }} />
+                                                        <col style={{ width: '14%' }} />
+                                                        <col style={{ width: '8%' }} />
+                                                        <col style={{ width: '12%' }} />
+                                                        <col style={{ width: '14%' }} />
+                                                    </colgroup>
                                                     <tbody>
                                                         <tr className="font-bold">
                                                             <td colSpan={4} className="py-3 px-4 text-sm text-gray-900 dark:text-white">الإجمالي</td>

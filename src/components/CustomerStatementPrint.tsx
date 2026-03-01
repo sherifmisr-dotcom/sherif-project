@@ -195,7 +195,7 @@ export default function CustomerStatementPrint({
               </div>
 
               {/* Info Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 md:mb-6">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }} className="mb-4 md:mb-6">
                 <div className="bg-slate-50 p-4 rounded-md border border-slate-200 border-r-4 border-r-blue-900">
                   <h3 className="text-blue-900 font-bold text-[13px] mb-2 border-b border-slate-300 pb-1">بيانات العميل</h3>
                   <div className="flex items-baseline mb-1">
@@ -267,7 +267,7 @@ export default function CustomerStatementPrint({
               </div>
 
               {/* Summary */}
-              <div className="summary-section grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-8 md:mb-12">
+              <div className="summary-section mb-8 md:mb-12" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
                 <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg flex flex-col items-center justify-center">
                   <span className="text-xs text-gray-500 mb-1">إجمالي المدين</span>
                   <span className="text-lg font-bold font-mono text-gray-700">{formatCurrency(totalDebit)}</span>

@@ -194,7 +194,7 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
                             </div>
 
                             {/* Info Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-8 print:grid-cols-2">
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }} className="mb-4 md:mb-8">
                                 {/* Box 1: Agent Info */}
                                 <div className="bg-slate-50 p-4 rounded-md border border-slate-200 border-r-4 border-r-blue-900">
                                     <h3 className="text-sm font-bold text-blue-900 mb-2 pb-1 border-b border-gray-300">بيانات الوكيل</h3>
@@ -270,7 +270,7 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
                             </div>
 
                             {/* Summary Boxes */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-6 mt-5 summary-section">
+                            <div className="mt-5 summary-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
                                 <SummaryBox title="إجمالي الدائن" value={data.totalCredit} colorClass="text-blue-600" />
                                 <SummaryBox title="إجمالي المدين" value={data.totalDebit} colorClass="text-blue-600" />
 
