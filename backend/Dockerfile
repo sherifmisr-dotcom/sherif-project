@@ -31,8 +31,8 @@ COPY package.json package-lock.json ./
 COPY prisma ./prisma/
 RUN npm ci --omit=dev
 
-# Install ts-node for running seed script
-RUN npm install ts-node typescript
+# Install tsx for running seed script (ts-node has ESM issues on Node 20)
+RUN npm install tsx
 
 # Generate Prisma client for production
 RUN npx prisma generate
@@ -49,6 +49,6 @@ EXPOSE ${PORT:-3000}
 ENV NODE_ENV=production
 
 # Run migrations, seed data, then start application
-CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db seed && node dist/main"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npx tsx prisma/seed.ts && node dist/main"]
 
 
