@@ -182,7 +182,7 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
 
                             {/* Header */}
                             {/* Header */}
-                            <header className="print-header flex flex-row justify-between items-start border-b-2 border-blue-900 pb-6 mb-8 gap-3">
+                            <header className="print-header border-b-2 border-blue-900 pb-6 mb-8 gap-3" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <div className="flex flex-col">
                                     <h1 className="text-xl font-bold text-blue-900 mb-1">{data.companyName}</h1>
                                     <h2 className="text-sm font-medium text-gray-500 mb-2">{data.companyNameEn}</h2>
@@ -196,7 +196,7 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
                                 </div>
 
                                 {/* Logo */}
-                                <div className="print-logo w-20 h-20 flex items-center justify-center">
+                                <div className="print-logo flex items-center justify-center" style={{ width: '80px', height: '80px', flexShrink: 0 }}>
                                     {data.logoPath ? (
                                         <img
                                             src={`http://localhost:3000${data.logoPath}`}
@@ -220,7 +220,7 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
                             </div>
 
                             {/* Info Grid */}
-                            <div className="print-info-grid mb-8">
+                            <div className="print-info-grid mb-8" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 {/* Box 1: Agent Info */}
                                 <div className="bg-slate-50 p-4 rounded-md border border-slate-200 border-r-4 border-r-blue-900">
                                     <h3 className="text-sm font-bold text-blue-900 mb-2 pb-1 border-b border-gray-300">بيانات الوكيل</h3>
@@ -296,7 +296,7 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
                             </div>
 
                             {/* Summary Boxes */}
-                            <div className="print-summary-grid mt-5 summary-section mb-4">
+                            <div className="print-summary-grid mt-5 summary-section mb-4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
                                 <SummaryBox title="إجمالي الدائن" value={data.totalCredit} colorClass="text-blue-600" />
                                 <SummaryBox title="إجمالي المدين" value={data.totalDebit} colorClass="text-blue-600" />
 
