@@ -161,8 +161,10 @@ export default function FinancialReports({ selectedReport, onSelectReport }: Fin
                 variants={itemVariants}
                 whileHover={{ y: -5, scale: 1.02 }}
                 whileTap={report.isUnderDevelopment ? {} : { scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                 onClick={() => report.isUnderDevelopment ? null : onSelectReport(report.id as FinancialReportType)}
-                className={`relative bg-white dark:bg-gray-800 rounded-2xl p-5 text-right border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-300 group overflow-hidden ${report.shadow} ${report.isUnderDevelopment ? 'opacity-80 cursor-not-allowed' : ''}`}
+                style={{ willChange: 'transform' }}
+                className={`relative bg-white dark:bg-gray-800 rounded-2xl p-5 text-right border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-shadow duration-300 group overflow-hidden ${report.shadow} ${report.isUnderDevelopment ? 'opacity-80 cursor-not-allowed' : ''}`}
               >
                 {/* Decorative Background Blob */}
                 <div className={`absolute -left-16 -top-16 w-32 h-32 bg-gradient-to-br ${report.gradient} rounded-full opacity-5 group-hover:opacity-10 transition-opacity duration-300 blur-2xl`} />

@@ -1,0 +1,205 @@
+# 🚀 دليل رفع التطبيق على Railway (خطوة بخطوة)
+
+> تطبيق React (Vite) + NestJS (Prisma) + PostgreSQL
+
+---
+
+## المتطلبات الأساسية
+- حساب على [Railway](https://railway.app)
+- المشروع مرفوع على GitHub
+- الملفات التالية جاهزة في المشروع:
+  - [Dockerfile](file:///c:/Users/Sherif/Documents/GitHub/sherif-project/Dockerfile) في الـ root (للفرونت)
+  - [backend/Dockerfile](file:///c:/Users/Sherif/Documents/GitHub/sherif-project/backend/Dockerfile) (للباك اند)
+
+---
+
+## أولاً: إعداد الملفات قبل الرفع
+
+### 1. ملف [backend/Dockerfile](file:///c:/Users/Sherif/Documents/GitHub/sherif-project/backend/Dockerfile)
+
+```dockerfile
+# ---- Build Stage ----
+FROM node:20-alpine AS builder
+RUN apk add --no-cache openssl openssl-dev
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY prisma ./prisma/
+RUN npm ci
+RUN npx prisma generate
+COPY . .
+RUN npm run build
+
+# ---- Production Stage ----
+FROM node:20-alpine AS production
+RUN apk add --no-cache openssl openssl-dev
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY prisma ./prisma/
+RUN npm ci --omit=dev
+RUN npm install tsx
+RUN npx prisma generate
+COPY --from=builder /app/dist ./dist
+RUN mkdir -p uploads backups
+EXPOSE ${PORT:-3000}
+ENV NODE_ENV=production
+CMD ["sh", "-c", "npx prisma migrate deploy && npx tsx prisma/seed.ts && node dist/main"]
+```
+
+> [!IMPORTANT]
+> - `apk add openssl openssl-dev` — ضروري لـ Prisma على Alpine Linux
+> - `npm install tsx` — لتشغيل ملف الـ seed بدل ts-node
+> - `npx prisma migrate deploy` — يشغل الـ migrations تلقائياً
+
+### 2. ملف [backend/prisma/schema.prisma](file:///c:/Users/Sherif/Documents/GitHub/sherif-project/backend/prisma/schema.prisma)
+
+أضف `binaryTargets` في أول الملف:
+
+```prisma
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+```
+
+### 3. ملف [Dockerfile](file:///c:/Users/Sherif/Documents/GitHub/sherif-project/Dockerfile) (الفرونت — في الـ root)
+
+```dockerfile
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+ARG VITE_API_BASE
+ENV VITE_API_BASE=$VITE_API_BASE
+RUN npm run build
+
+FROM node:20-alpine AS production
+WORKDIR /app
+RUN npm install -g serve
+COPY --from=builder /app/dist ./dist
+EXPOSE ${PORT:-5173}
+CMD ["sh", "-c", "serve dist -s -l ${PORT:-5173}"]
+```
+
+> [!IMPORTANT]
+> `ARG VITE_API_BASE` + `ENV VITE_API_BASE` ضروريين عشان Vite يعرف رابط الباك اند وقت البناء.
+
+### 4. ملف [backend/.dockerignore](file:///c:/Users/Sherif/Documents/GitHub/sherif-project/backend/.dockerignore)
+
+```
+node_modules
+dist
+.env
+.env.local
+*.md
+.git
+```
+
+### 5. ارفع التعديلات على GitHub
+
+```bash
+git add .
+git commit -m "prepare for Railway deployment"
+git push
+```
+
+---
+
+## ثانياً: إنشاء المشروع على Railway
+
+### 6. إنشاء مشروع جديد
+- ادخل على [railway.app](https://railway.app) وسجل دخول
+- اضغط **New Project**
+
+### 7. إنشاء قاعدة البيانات (PostgreSQL)
+- اضغط **+ New** → **Database** → **PostgreSQL**
+- Railway هينشئ الداتابيز تلقائياً ويديك `DATABASE_URL`
+
+---
+
+## ثالثاً: نشر الباك اند
+
+### 8. إنشاء سيرفس الباك اند
+- اضغط **+ New** → **GitHub Repo** → اختار الريبو
+- بعد الإنشاء، روح **Settings**:
+  - **Root Directory** → `backend`
+  - **Dockerfile Path** → [./Dockerfile](file:///c:/Users/Sherif/Documents/GitHub/sherif-project/Dockerfile) (أو [backend/Dockerfile](file:///c:/Users/Sherif/Documents/GitHub/sherif-project/backend/Dockerfile))
+
+### 9. إضافة متغيرات البيئة للباك اند
+في **Variables** أضف:
+
+| المتغير | القيمة |
+|---|---|
+| `DATABASE_URL` | انسخها من سيرفس PostgreSQL (أو استخدم Variable Reference: `${{Postgres.DATABASE_URL}}`) |
+| `NODE_ENV` | `production` |
+| `PORT` | `3000` |
+| `JWT_SECRET` | مفتاح سري قوي |
+| `JWT_EXPIRES_IN` | `1h` |
+| `JWT_REFRESH_SECRET` | مفتاح سري تاني |
+| `JWT_REFRESH_EXPIRES_IN` | `7d` |
+| `CORS_ORIGIN` | (هنضيفه بعد ما ننشئ الفرونت) |
+| `FILES_DIR` | `./uploads` |
+
+### 10. إنشاء Domain للباك اند
+- **Settings** → **Networking** → **Public Networking** → **Generate Domain**
+- انسخ الرابط (مثال: `sherif-project-production.up.railway.app`)
+
+### 11. انتظر الـ Deploy
+- تابع من **Build Logs** و **Deploy Logs**
+- لازم تشوف: `🚀 Application is running on: http://localhost:3000`
+
+---
+
+## رابعاً: نشر الفرونت اند
+
+### 12. إنشاء سيرفس الفرونت
+- اضغط **+ New** → **GitHub Repo** → اختار **نفس الريبو**
+- في **Settings**:
+  - **Root Directory** → اسيبه فاضي (الفرونت في الـ root)
+  - **Dockerfile Path** → [./Dockerfile](file:///c:/Users/Sherif/Documents/GitHub/sherif-project/Dockerfile)
+
+### 13. إضافة متغيرات البيئة للفرونت
+في **Variables** أضف:
+
+| المتغير | القيمة |
+|---|---|
+| `VITE_API_BASE` | `https://sherif-project-production.up.railway.app` (رابط الباك اند من خطوة 10) |
+
+> [!CAUTION]
+> لازم يبدأ بـ `https://` !
+
+### 14. إنشاء Domain للفرونت
+- **Settings** → **Networking** → **Generate Domain**
+- انسخ الرابط (مثال: `terrific-renewal-production-8312.up.railway.app`)
+
+### 15. تحديث CORS في الباك اند
+- ارجع لسيرفس الباك اند → **Variables**
+- أضف/عدّل:
+  ```
+  CORS_ORIGIN = https://terrific-renewal-production-8312.up.railway.app
+  ```
+- اعمل **Redeploy** للباك اند
+
+---
+
+## خامساً: الاختبار ✅
+
+### 16. افتح رابط الفرونت في المتصفح
+- لو ظهرت صفحة تسجيل الدخول = الفرونت شغال ✅
+- سجل دخول بـ:
+  - 👤 `superadmin` / 🔑 `SuperAdmin@2026`
+  - 👤 `admin` / 🔑 `admin123`
+
+---
+
+## ملاحظات مهمة
+
+> [!TIP]
+> - Railway بيعمل **deploy تلقائي** مع كل `git push`
+> - لو غيرت أي متغير بيئة، Railway بيعمل redeploy تلقائي
+> - تابع الـ **Deploy Logs** دايماً عشان تتأكد مفيش أخطاء
+
+> [!WARNING]
+> - **مفتاح `JWT_SECRET`** لازم يكون قوي وسري في الـ production
+> - **`DATABASE_URL`** لازم يستخدم الرابط الداخلي (`postgres.railway.internal`) مش الخارجي
+> - لو عدلت `VITE_API_BASE` لازم تعمل **Redeploy** للفرونت عشان يتبنى من جديد

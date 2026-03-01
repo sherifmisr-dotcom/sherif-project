@@ -127,6 +127,7 @@ export default function Invoices() {
               variants={itemVariants}
               whileHover={{ y: -5, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               onClick={() => navigate(type.path)}
               style={{ willChange: 'transform' }}
               className={`relative bg-white dark:bg-gray-800 rounded-2xl p-5 text-right border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-shadow duration-300 group overflow-hidden ${type.shadow}`}
