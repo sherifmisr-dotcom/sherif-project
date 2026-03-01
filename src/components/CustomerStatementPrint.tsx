@@ -325,7 +325,7 @@ export default function CustomerStatementPrint({
                   <div className="border-b border-dashed border-gray-400 w-full"></div>
                 </div>
                 <div className="text-center w-32 md:w-48">
-                  <p className="font-bold text-gray-600 mb-12">المدير المالي / الختم</p>
+                  <p className="font-bold text-gray-600 mb-12">المدير المالي</p>
                   <div className="border-b border-dashed border-gray-400 w-full"></div>
                 </div>
               </footer>
