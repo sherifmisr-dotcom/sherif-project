@@ -136,7 +136,7 @@ export default function AgentReports() {
             type: 'trip',
             description: `رحلة العبارة ${vesselName} `,
             vessel: vesselName,
-            count: `${trip.quantity || 0} `,
+            count: trip.tripNumber || '-',
             debit: 0,
             credit: parseFloat(String(trip.totalAmount || 0)),
             id: trip.id,
@@ -150,14 +150,13 @@ export default function AgentReports() {
           // Get vessel name from fee data
           const vesselName = fee.vessel?.name || 'غير محدد';
           const feeType = fee.feeType || 'رسوم إضافية';
-          const quantity = fee.quantity || 1;
 
           allTransactions.push({
             date: fee.date,
             type: 'fee',
             description: `${feeType} رحلة العبارة ${vesselName} `,
             vessel: vesselName,
-            count: `${quantity} `,
+            count: fee.tripNumber || '-',
             debit: 0,
             credit: parseFloat(String(fee.amount || 0)),
             id: fee.id,
@@ -170,13 +169,14 @@ export default function AgentReports() {
         statementData.vouchers.forEach((voucher: any) => {
           // Get voucher details from notes field
           const counterparty = voucher.notes || 'غير محدد';
+          const voucherCode = voucher.code || voucher.voucherCode || voucher.voucherNumber || '-';
 
           allTransactions.push({
             date: voucher.date,
             type: 'voucher',
-            description: `سند صرف - ${counterparty} `,
+            description: counterparty,
             vessel: '-',
-            count: '-',
+            count: voucherCode,
             debit: parseFloat(String(voucher.amount || 0)),
             credit: 0,
             id: voucher.id,
@@ -445,7 +445,7 @@ export default function AgentReports() {
                     البيان
                   </th>
                   <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    عدد الشاحنات
+                    الرحلة/السند
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     دائن

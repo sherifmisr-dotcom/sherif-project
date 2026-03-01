@@ -254,7 +254,7 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
                                         <tr>
                                             <th className="p-2 text-center font-medium">التاريخ</th>
                                             <th className="p-2 text-center font-medium">البيــــــــــــــــــــــان</th>
-                                            <th className="p-2 text-center font-medium whitespace-nowrap">عدد الشاحنات</th>
+                                            <th className="p-2 text-center font-medium whitespace-nowrap">الرحلة/السند</th>
                                             <th className="p-2 text-center font-bold">دائن</th>
                                             <th className="p-2 text-center font-bold">مدين</th>
                                             <th className="p-2 text-center font-bold">الرصيد</th>
