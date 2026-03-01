@@ -70,6 +70,32 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
                 <script src="https://cdn.tailwindcss.com"></script>
                 <style>
                     * { font-family: 'Tajawal', sans-serif; }
+                    .print-header {
+                        display: flex !important;
+                        flex-direction: row !important;
+                        justify-content: space-between !important;
+                        align-items: flex-start !important;
+                    }
+                    .print-logo {
+                        width: 80px !important;
+                        height: 80px !important;
+                        flex-shrink: 0 !important;
+                    }
+                    .print-logo img {
+                        max-width: 100% !important;
+                        max-height: 100% !important;
+                        object-fit: contain !important;
+                    }
+                    .print-info-grid {
+                        display: grid !important;
+                        grid-template-columns: 1fr 1fr !important;
+                        gap: 1rem !important;
+                    }
+                    .print-summary-grid {
+                        display: grid !important;
+                        grid-template-columns: 1fr 1fr 1fr !important;
+                        gap: 0.75rem !important;
+                    }
                     @media print {
                         @page { 
                             size: A4; 
@@ -156,7 +182,7 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
 
                             {/* Header */}
                             {/* Header */}
-                            <header className="flex flex-col-reverse md:flex-row justify-between items-start border-b-2 border-blue-900 pb-4 md:pb-6 mb-4 md:mb-8 gap-3">
+                            <header className="print-header flex flex-row justify-between items-start border-b-2 border-blue-900 pb-6 mb-8 gap-3">
                                 <div className="flex flex-col">
                                     <h1 className="text-xl font-bold text-blue-900 mb-1">{data.companyName}</h1>
                                     <h2 className="text-sm font-medium text-gray-500 mb-2">{data.companyNameEn}</h2>
@@ -170,7 +196,7 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
                                 </div>
 
                                 {/* Logo */}
-                                <div className="w-20 h-20 flex items-center justify-center">
+                                <div className="print-logo w-20 h-20 flex items-center justify-center">
                                     {data.logoPath ? (
                                         <img
                                             src={`http://localhost:3000${data.logoPath}`}
@@ -194,7 +220,7 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
                             </div>
 
                             {/* Info Grid */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }} className="mb-4 md:mb-8">
+                            <div className="print-info-grid mb-8">
                                 {/* Box 1: Agent Info */}
                                 <div className="bg-slate-50 p-4 rounded-md border border-slate-200 border-r-4 border-r-blue-900">
                                     <h3 className="text-sm font-bold text-blue-900 mb-2 pb-1 border-b border-gray-300">بيانات الوكيل</h3>
@@ -270,7 +296,7 @@ export const AgentStatementPrint: React.FC<AgentStatementProps> = ({ data, onClo
                             </div>
 
                             {/* Summary Boxes */}
-                            <div className="mt-5 summary-section" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+                            <div className="print-summary-grid mt-5 summary-section mb-4">
                                 <SummaryBox title="إجمالي الدائن" value={data.totalCredit} colorClass="text-blue-600" />
                                 <SummaryBox title="إجمالي المدين" value={data.totalDebit} colorClass="text-blue-600" />
 

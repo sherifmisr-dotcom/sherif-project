@@ -78,6 +78,32 @@ export default function CustomerStatementPrint({
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
           * { font-family: 'Tajawal', sans-serif; }
+          .print-header {
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            align-items: flex-start !important;
+          }
+          .print-logo {
+            width: 80px !important;
+            height: 80px !important;
+            flex-shrink: 0 !important;
+          }
+          .print-logo img {
+            max-width: 100% !important;
+            max-height: 100% !important;
+            object-fit: contain !important;
+          }
+          .print-info-grid {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 1rem !important;
+          }
+          .print-summary-grid {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr 1fr !important;
+            gap: 0.75rem !important;
+          }
           @media print {
             @page { 
               size: A4; 
@@ -157,7 +183,7 @@ export default function CustomerStatementPrint({
           <div id="customer-statement-print-content" className="bg-white p-3 md:p-8">
             <div className="max-w-full">
               {/* Header */}
-              <header className="flex flex-col-reverse md:flex-row justify-between items-start border-b-2 border-blue-900 pb-4 md:pb-6 mb-4 md:mb-8 gap-3">
+              <header className="print-header flex flex-row justify-between items-start border-b-2 border-blue-900 pb-6 mb-8 gap-3">
                 <div className="flex flex-col">
                   <h1 className="text-xl font-bold text-blue-900 mb-1">
                     {companySettings?.nameAr || 'نظام إدارة العمليات الجمركية'} {companySettings?.activityAr}
@@ -173,7 +199,7 @@ export default function CustomerStatementPrint({
                     <span><strong className="text-blue-900">ترخيص رقم:</strong> {companySettings?.licenseNo || '---'}</span>
                   </div>
                 </div>
-                <div className="w-24 h-24 flex items-center justify-center">
+                <div className="print-logo w-20 h-20 flex items-center justify-center">
                   {companySettings?.logoPath ? (
                     <img
                       src={`http://localhost:3000${companySettings.logoPath}`}
@@ -195,7 +221,7 @@ export default function CustomerStatementPrint({
               </div>
 
               {/* Info Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }} className="mb-4 md:mb-6">
+              <div className="print-info-grid mb-6">
                 <div className="bg-slate-50 p-4 rounded-md border border-slate-200 border-r-4 border-r-blue-900">
                   <h3 className="text-blue-900 font-bold text-[13px] mb-2 border-b border-slate-300 pb-1">بيانات العميل</h3>
                   <div className="flex items-baseline mb-1">
@@ -267,7 +293,7 @@ export default function CustomerStatementPrint({
               </div>
 
               {/* Summary */}
-              <div className="summary-section mb-8 md:mb-12" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+              <div className="print-summary-grid summary-section mb-12">
                 <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg flex flex-col items-center justify-center">
                   <span className="text-xs text-gray-500 mb-1">إجمالي المدين</span>
                   <span className="text-lg font-bold font-mono text-gray-700">{formatCurrency(totalDebit)}</span>
