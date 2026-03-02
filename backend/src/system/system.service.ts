@@ -114,13 +114,10 @@ export class SystemService {
         await this.prisma.auditLog.deleteMany();
         await this.prisma.permissionAuditLog.deleteMany();
 
-        // 20. Delete all users except Super Admin and Admin accounts
+        // 20. Delete all users except Super Admin
         await this.prisma.user.deleteMany({
             where: {
-                AND: [
-                    { isSuperAdmin: { not: true } },
-                    { isAdmin: { not: true } },
-                ],
+                isSuperAdmin: { not: true },
             },
         });
 
