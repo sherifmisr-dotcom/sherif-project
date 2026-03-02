@@ -370,7 +370,7 @@ export default function AgentReports() {
           </div>
         </div>
 
-        {transactions.length > 0 && (
+        {hasGenerated && !loading && (
           <div className="flex gap-3">
             <button
               onClick={() => setShowPrint(true)}
@@ -382,7 +382,7 @@ export default function AgentReports() {
         )}
       </div>
 
-      {transactions.length > 0 && (
+      {hasGenerated && !loading && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -522,18 +522,15 @@ export default function AgentReports() {
         </motion.div>
       )}
 
-      {!loading && transactions.length === 0 && (
+      {!loading && !hasGenerated && (
         <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-12 text-center">
           <p className="text-gray-500 dark:text-gray-400">
-            {hasGenerated
-              ? 'لا توجد حركات للوكيل خلال الفترة المحددة'
-              : 'اختر الوكيل والفترة وانقر على "إنشاء التقرير"'
-            }
+            اختر الوكيل والفترة وانقر على "إنشاء التقرير"
           </p>
         </div>
       )}
 
-      {showPrint && agentData && transactions.length > 0 && (
+      {showPrint && agentData && hasGenerated && (
         <AgentStatementPrint
           data={{
             companyName: (companySettings?.nameAr || 'نظام إدارة العمليات الجمركية') + (companySettings?.activityAr ? ' ' + companySettings.activityAr : ''),

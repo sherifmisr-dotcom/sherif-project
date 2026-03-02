@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 interface ReportItem {
     id: string;
@@ -32,6 +33,9 @@ interface ExpensesReportPrintProps {
 export default function ExpensesReportPrint({
     type, startDate, endDate, data, summary, onClose,
 }: ExpensesReportPrintProps) {
+
+    // Lock body scroll while modal is mounted
+    useScrollLock(true);
 
     const isExpenses = type === 'expenses';
     const title = isExpenses ? 'تقرير المصروفات' : 'تقرير الإيرادات';
@@ -79,7 +83,7 @@ export default function ExpensesReportPrint({
 
 
     return (
-        <div className="fixed inset-0 z-[9999] bg-black/40 flex items-start justify-center overflow-y-auto py-6 print:hidden" onClick={onClose}>
+        <div className="fixed inset-0 z-[9999] bg-black/40 flex items-start justify-center py-6 print:hidden" onClick={onClose}>
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-[310mm] mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
                 {/* Modern App Toolbar */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50/80 backdrop-blur-sm">

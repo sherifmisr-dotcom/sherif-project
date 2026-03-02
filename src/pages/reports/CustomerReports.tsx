@@ -426,7 +426,7 @@ export default function CustomerReports() {
               </div>
             </div>
 
-            {transactions.length > 0 && (
+            {hasGenerated && !loading && (
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowPrint(true)}
@@ -439,7 +439,7 @@ export default function CustomerReports() {
             )}
           </div>
 
-          {transactions.length > 0 && (
+          {hasGenerated && !loading && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -572,18 +572,15 @@ export default function CustomerReports() {
             </motion.div>
           )}
 
-          {!loading && transactions.length === 0 && (
+          {!loading && !hasGenerated && (
             <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-12 text-center">
               <p className="text-gray-500 dark:text-gray-400">
-                {hasGenerated
-                  ? 'لا توجد حركات للعميل خلال الفترة المحددة'
-                  : 'اختر العميل والفترة وانقر على "إنشاء التقرير"'
-                }
+                اختر العميل والفترة وانقر على "إنشاء التقرير"
               </p>
             </div>
           )}
 
-          {showPrint && transactions.length > 0 && (
+          {showPrint && hasGenerated && (
             <CustomerStatementPrint
               customerName={customers.find(c => c.id === selectedCustomer)?.name || ''}
               startDate={startDate}

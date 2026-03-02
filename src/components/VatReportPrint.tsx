@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 interface VatInvoice {
     id: string;
@@ -48,6 +49,9 @@ const TYPE_LABELS: { [key: string]: string } = {
 };
 
 export default function VatReportPrint({ data, onClose }: VatReportPrintProps) {
+    // Lock body scroll while modal is mounted
+    useScrollLock(true);
+
     const formatCurrency = (amount: number) =>
         new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
 
@@ -97,7 +101,7 @@ export default function VatReportPrint({ data, onClose }: VatReportPrintProps) {
     };
 
     return (
-        <div className="fixed inset-0 z-[9999] bg-black/40 flex items-start justify-center overflow-y-auto py-6" onClick={onClose}>
+        <div className="fixed inset-0 z-[9999] bg-black/40 flex items-start justify-center py-6" onClick={onClose}>
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-[310mm] mx-4" onClick={e => e.stopPropagation()}>
                 {/* Toolbar */}
                 <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-gray-50 rounded-t-xl">
