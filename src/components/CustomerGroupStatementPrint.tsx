@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import ModalOverlay from '@/components/ui/ModalOverlay';
 import { tafqeet } from '../utils/tafqeet';
 
+const API_BASE = import.meta.env.VITE_API_BASE || '';
+
 interface GroupTransaction {
     id: string;
     date: string;
@@ -173,7 +175,7 @@ export default function CustomerGroupStatementPrint({
                                 <div className="w-24 h-24 flex items-center justify-center">
                                     {companySettings?.logoPath ? (
                                         <img
-                                            src={`http://localhost:3000${companySettings.logoPath}`}
+                                            src={`${API_BASE}${companySettings.logoPath}`}
                                             alt="Company Logo"
                                             className="max-w-full max-h-full object-contain"
                                         />

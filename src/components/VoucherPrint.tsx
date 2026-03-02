@@ -7,6 +7,8 @@ import ModalOverlay from '@/components/ui/ModalOverlay';
 import { X, Calendar, Wallet, Landmark, User, Printer, FileText, Banknote } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const API_BASE = import.meta.env.VITE_API_BASE || '';
+
 // تعريف أنواع البيانات
 interface VoucherData {
   id: string;
@@ -308,7 +310,7 @@ export default function VoucherPrint({ voucher, onClose }: VoucherPrintProps) {
                 <div className="w-20 h-20 flex items-center justify-center">
                   {companySettings?.logoPath ? (
                     <img
-                      src={`http://localhost:3000${companySettings.logoPath}`}
+                      src={`${API_BASE}${companySettings.logoPath}`}
                       alt="Company Logo"
                       className="max-w-full max-h-full object-contain"
                     />

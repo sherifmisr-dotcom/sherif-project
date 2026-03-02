@@ -4,6 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiClient } from '@/lib/api';
 import { Building2, Upload, Save, Loader2 } from 'lucide-react';
+import { showSuccess, showError, showWarning } from '@/lib/toast';
+
+const API_BASE = import.meta.env.VITE_API_BASE || '';
 
 const companySettingsSchema = z.object({
     nameAr: z.string().min(1, 'اسم الشركة بالعربي مطلوب'),
@@ -23,7 +26,6 @@ type CompanySettingsForm = z.infer<typeof companySettingsSchema>;
 export default function CompanySettings() {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [logoFile, setLogoFile] = useState<File | null>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [currentLogo, setCurrentLogo] = useState<string | null>(null);
@@ -63,12 +65,12 @@ export default function CompanySettings() {
                 });
 
                 if (data.logoPath) {
-                    setCurrentLogo(`http://localhost:3000${data.logoPath}`);
+                    setCurrentLogo(`${API_BASE}${data.logoPath}`);
                 }
             }
         } catch (error) {
             console.error('Error loading settings:', error);
-            setMessage({ type: 'error', text: 'فشل تحميل البيانات' });
+            showError('فشل تحميل البيانات');
         } finally {
             setLoading(false);
         }
@@ -79,13 +81,13 @@ export default function CompanySettings() {
         if (file) {
             // Validate file type
             if (!file.type.match(/image\/(jpg|jpeg|png|gif)/)) {
-                setMessage({ type: 'error', text: 'يجب أن تكون الصورة بصيغة JPG, PNG أو GIF' });
+                showWarning('يجب أن تكون الصورة بصيغة JPG, PNG أو GIF');
                 return;
             }
 
             // Validate file size (2MB)
             if (file.size > 2 * 1024 * 1024) {
-                setMessage({ type: 'error', text: 'حجم الصورة يجب أن لا يتجاوز 2 ميجابايت' });
+                showWarning('حجم الصورة يجب أن لا يتجاوز 2 ميجابايت');
                 return;
             }
 
@@ -111,7 +113,7 @@ export default function CompanySettings() {
             const response = await apiClient.uploadCompanyLogo(formData);
             const data = response.data || response;
 
-            setCurrentLogo(`http://localhost:3000${data.logoPath}`);
+            setCurrentLogo(`${API_BASE}${data.logoPath}`);
             setLogoFile(null);
             setLogoPreview(null);
 
@@ -127,7 +129,6 @@ export default function CompanySettings() {
     const onSubmit = async (data: CompanySettingsForm) => {
         try {
             setSaving(true);
-            setMessage(null);
 
             // Upload logo first if there's a new one
             if (logoFile) {
@@ -137,7 +138,7 @@ export default function CompanySettings() {
             // Save company settings
             await apiClient.updateCompanySettings(data);
 
-            setMessage({ type: 'success', text: 'تم حفظ البيانات بنجاح' });
+            showSuccess('تم حفظ البيانات بنجاح');
 
             // Reload to get updated data
             setTimeout(() => {
@@ -145,7 +146,7 @@ export default function CompanySettings() {
             }, 1000);
         } catch (error) {
             console.error('Error saving settings:', error);
-            setMessage({ type: 'error', text: 'فشل حفظ البيانات' });
+            showError('فشل حفظ البيانات');
         } finally {
             setSaving(false);
         }
@@ -171,16 +172,7 @@ export default function CompanySettings() {
                 </div>
             </div>
 
-            {message && (
-                <div
-                    className={`p-4 rounded-lg flex items-center gap-3 ${message.type === 'success'
-                        ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200'
-                        : 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200'
-                        }`}
-                >
-                    {message.text}
-                </div>
-            )}
+
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Logo Upload Section */}

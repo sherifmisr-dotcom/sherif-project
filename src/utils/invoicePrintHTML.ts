@@ -1,4 +1,6 @@
 // Helper function to generate complete invoice HTML for printing
+const API_BASE = import.meta.env.VITE_API_BASE || '';
+
 export const generateCompleteInvoiceHTML = (invoice: any, settings: any, qrCodeDataUrl?: string): string => {
   const customerName = invoice.customer?.name || invoice.customers?.name || 'غير محدد';
   const customsNo = invoice.customsNo || invoice.customs_no || 'غير محدد';
@@ -116,7 +118,7 @@ export const generateCompleteInvoiceHTML = (invoice: any, settings: any, qrCodeD
           <!-- Logo -->
           <div style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
             ${settings?.logoPath ? `
-              <img src="http://localhost:3000${settings.logoPath}" alt="Company Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+              <img src="${API_BASE}${settings.logoPath}" alt="Company Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
             ` : `
               <div style="width: 80px; height: 80px; background: #f8fafc; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #e2e8f0;">
                 <span style="font-size: 14px; color: #cbd5e1;">شعار</span>

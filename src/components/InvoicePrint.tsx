@@ -4,6 +4,7 @@ import { apiClient } from '@/lib/api';
 import ModalOverlay from '@/components/ui/ModalOverlay';
 import { generateZatcaQRDataUrl } from '@/utils/zatcaQR';
 
+const API_BASE = import.meta.env.VITE_API_BASE || '';
 interface InvoiceData {
   invoice_no: string;
   date: string;
@@ -150,7 +151,7 @@ export default function InvoicePrint({ invoice, onClose }: InvoicePrintProps) {
               <div className="w-24 h-24 flex items-center justify-center">
                 {companySettings?.logoPath ? (
                   <img
-                    src={`http://localhost:3000${companySettings.logoPath}`}
+                    src={`${API_BASE}${companySettings.logoPath}`}
                     alt="Company Logo"
                     className="max-w-full max-h-full object-contain"
                   />
