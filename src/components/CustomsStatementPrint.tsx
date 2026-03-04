@@ -1,5 +1,4 @@
 ﻿import { format } from 'date-fns';
-import apiClient from '../lib/api';
 import ModalOverlay from '@/components/ui/ModalOverlay';
 
 interface CustomsInvoice {
@@ -10,6 +9,7 @@ interface CustomsInvoice {
     type: 'IMPORT' | 'EXPORT' | 'TRANSIT' | 'FREE';
     total: number;
     clearanceFees: number;
+    customsDuties: number;
 }
 
 interface CustomsStatementPrintProps {
@@ -20,6 +20,7 @@ interface CustomsStatementPrintProps {
     totalCount: number;
     totalAmount: number;
     totalClearanceFees: number;
+    totalCustomsDuties: number;
     onClose: () => void;
 }
 
@@ -45,6 +46,7 @@ export default function CustomsStatementPrint({
     totalCount,
     totalAmount,
     totalClearanceFees,
+    totalCustomsDuties,
     onClose,
 }: CustomsStatementPrintProps) {
 
@@ -104,36 +106,6 @@ export default function CustomsStatementPrint({
         };
     };
 
-    const handleDownloadPDF = async () => {
-        try {
-            // Prepare data for Backend
-            const pdfData = {
-                startDate,
-                endDate,
-                selectedTypes,
-                invoices,
-                totalCount,
-                totalAmount,
-                totalClearanceFees,
-            };
-
-            // Call Backend API
-            const pdfBlob = await apiClient.generateCustomsReportPDF(pdfData);
-
-            // Create download link
-            const url = window.URL.createObjectURL(pdfBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `Customs_Report_${new Date().toISOString().split('T')[0]}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            alert('حدث خطأ أثناء إنشاء ملف PDF. الرجاء المحاولة مرة أخرى.');
-        }
-    };
 
     return (
         <>
@@ -144,15 +116,6 @@ export default function CustomsStatementPrint({
                     <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center print:hidden z-10">
                         <h3 className="text-lg font-bold text-gray-900">معاينة تقرير البيانات والايرادات</h3>
                         <div className="flex gap-3">
-                            <button
-                                onClick={handleDownloadPDF}
-                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                                PDF
-                            </button>
                             <button
                                 onClick={handlePrint}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -192,7 +155,7 @@ export default function CustomsStatementPrint({
                             </div>
 
                             {/* Summary Cards */}
-                            <div className="grid grid-cols-3 gap-4 mb-8">
+                            <div className="grid grid-cols-4 gap-4 mb-8">
                                 <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 relative overflow-hidden">
                                     <div className="absolute top-0 right-0 w-1 h-full bg-sky-500 rounded-r-xl"></div>
                                     <p className="text-sm font-bold text-slate-600 mb-2">إجمالي عدد البيانات</p>
@@ -208,6 +171,11 @@ export default function CustomsStatementPrint({
                                     <p className="text-sm font-bold text-slate-600 mb-2">إجمالي أجور التخليص</p>
                                     <p className="text-2xl font-black text-slate-800">{formatNumber(totalClearanceFees)}</p>
                                 </div>
+                                <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-1 h-full bg-red-500 rounded-r-xl"></div>
+                                    <p className="text-sm font-bold text-slate-600 mb-2">إجمالي الرسوم الجمركية</p>
+                                    <p className="text-2xl font-black text-slate-800">{formatNumber(totalCustomsDuties)}</p>
+                                </div>
                             </div>
 
                             {/* Table */}
@@ -221,12 +189,13 @@ export default function CustomsStatementPrint({
                                             <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">النوع</th>
                                             <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">مبلغ الفاتورة</th>
                                             <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">أجور التخليص</th>
+                                            <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">الرسوم الجمركية</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
                                         {invoices.length === 0 ? (
                                             <tr>
-                                                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                                                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                                                     لا توجد فواتير في هذه الفترة
                                                 </td>
                                             </tr>
@@ -248,6 +217,9 @@ export default function CustomsStatementPrint({
                                                     </td>
                                                     <td className="px-4 py-3 text-sm font-semibold text-orange-600 whitespace-nowrap">
                                                         {formatNumber(invoice.clearanceFees)}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm font-semibold text-red-600 whitespace-nowrap">
+                                                        {formatNumber(invoice.customsDuties)}
                                                     </td>
                                                 </tr>
                                             ))

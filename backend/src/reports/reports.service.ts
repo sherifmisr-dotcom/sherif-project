@@ -994,34 +994,46 @@ export class ReportsService {
             orderBy: { date: 'asc' },
         });
 
-        // Keywords for clearance fees identification
-        // Exact match first (fastest), then keyword matching (fallback)
+        // Keywords for item identification
         const CLEARANCE_FEE_EXACT_NAME = 'أجور تخليص';
         const clearanceKeywords = ['تخليص', 'اجور تخليص', 'clearance'];
+        const CUSTOMS_DUTY_EXACT_NAME = 'رسوم جمركية';
+        const customsDutyKeywords = ['جمرك', 'رسوم جمركية', 'customs'];
 
         let totalAmount = 0;
         let totalClearanceFees = 0;
+        let totalCustomsDuties = 0;
 
         const processedInvoices = invoices.map(invoice => {
             const invoiceTotal = parseFloat(invoice.total.toString());
             totalAmount += invoiceTotal;
 
-            // Calculate clearance fees from items
+            // Calculate clearance fees and customs duties from items
             let clearanceFees = 0;
+            let customsDuties = 0;
             invoice.items.forEach((item) => {
-                // Fast path: exact match (O(1) - most common case)
+                // Use unitPrice * quantity to EXCLUDE VAT
+                const baseAmount = parseFloat(item.unitPrice.toString()) * parseFloat(item.quantity.toString());
+
+                // Clearance fees identification
                 if (item.description === CLEARANCE_FEE_EXACT_NAME) {
-                    clearanceFees += parseFloat(item.amount.toString());
+                    clearanceFees += baseAmount;
+                } else if (item.description === CUSTOMS_DUTY_EXACT_NAME) {
+                    // Customs duties identification (exact match)
+                    customsDuties += baseAmount;
                 } else {
                     // Slow path: keyword matching (fallback for variations)
                     const desc = item.description.toLowerCase();
                     if (clearanceKeywords.some(k => desc.includes(k.toLowerCase()))) {
-                        clearanceFees += parseFloat(item.amount.toString());
+                        clearanceFees += baseAmount;
+                    } else if (customsDutyKeywords.some(k => desc.includes(k.toLowerCase()))) {
+                        customsDuties += baseAmount;
                     }
                 }
             });
 
             totalClearanceFees += clearanceFees;
+            totalCustomsDuties += customsDuties;
 
             return {
                 id: invoice.id,
@@ -1031,6 +1043,7 @@ export class ReportsService {
                 type: invoice.type,
                 total: invoiceTotal,
                 clearanceFees,
+                customsDuties,
             };
         });
 
@@ -1047,6 +1060,7 @@ export class ReportsService {
                 totalCount: invoices.length,
                 totalAmount,
                 totalClearanceFees,
+                totalCustomsDuties,
             },
         };
     }

@@ -14,6 +14,7 @@ interface CustomsInvoice {
   type: 'IMPORT' | 'EXPORT' | 'TRANSIT' | 'FREE';
   total: number;
   clearanceFees: number;
+  customsDuties: number;
 }
 
 interface CustomsReportData {
@@ -24,6 +25,7 @@ interface CustomsReportData {
     totalCount: number;
     totalAmount: number;
     totalClearanceFees: number;
+    totalCustomsDuties: number;
   };
 }
 
@@ -201,7 +203,7 @@ export default function CustomsReports() {
           </div>
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 p-4 sm:p-6 bg-gray-50 dark:bg-gray-700/50">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 p-4 sm:p-6 bg-gray-50 dark:bg-gray-700/50">
             <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-600">
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">إجمالي عدد البيانات</p>
               <p className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
@@ -218,6 +220,12 @@ export default function CustomsReports() {
               <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">إجمالي أجور التخليص</p>
               <p className="text-xl sm:text-2xl font-bold text-orange-600 dark:text-orange-400">
                 {formatCurrency(data.summary.totalClearanceFees)}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-600">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">إجمالي الرسوم الجمركية</p>
+              <p className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">
+                {formatCurrency(data.summary.totalCustomsDuties)}
               </p>
             </div>
           </div>
@@ -245,12 +253,15 @@ export default function CustomsReports() {
                   <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">
                     أجور التخليص
                   </th>
+                  <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    الرسوم الجمركية
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {data.invoices.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                       لا توجد فواتير في هذه الفترة
                     </td>
                   </tr>
@@ -276,6 +287,9 @@ export default function CustomsReports() {
                       </td>
                       <td className="px-4 py-3 text-sm font-semibold text-orange-600 dark:text-orange-400 whitespace-nowrap">
                         {formatNumber(invoice.clearanceFees)}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-400 whitespace-nowrap">
+                        {formatNumber(invoice.customsDuties)}
                       </td>
                     </tr>
                   ))
@@ -305,6 +319,7 @@ export default function CustomsReports() {
           totalCount={data.summary.totalCount}
           totalAmount={data.summary.totalAmount}
           totalClearanceFees={data.summary.totalClearanceFees}
+          totalCustomsDuties={data.summary.totalCustomsDuties}
           onClose={() => setShowPrint(false)}
         />
       )}
