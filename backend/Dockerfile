@@ -49,6 +49,6 @@ EXPOSE ${PORT:-3000}
 ENV NODE_ENV=production
 
 # Run migrations, seed data, then start application
-CMD ["sh", "-c", "npx prisma migrate deploy && npx tsx prisma/seed.ts && node dist/main"]
+CMD ["sh", "-c", "npx prisma migrate resolve --rolled-back 20260309120000_add_invoice_discount && npx prisma migrate deploy && npx tsx prisma/seed.ts && node dist/main"]
 
 
