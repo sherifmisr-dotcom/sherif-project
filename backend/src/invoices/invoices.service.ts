@@ -85,6 +85,7 @@ export class InvoicesService {
         items: { unitPrice: number; quantity: number; vatRate: number; amount?: number }[],
         vatEnabled: boolean,
         vatRate?: number,
+        discount: number = 0,
     ): { total: number; vatAmount: number; subtotal: number } {
         // Calculate subtotal (sum of all unitPrice * quantity)
         const subtotal = items.reduce((sum, item) => {
@@ -99,7 +100,9 @@ export class InvoicesService {
             return sum + itemVat;
         }, 0);
 
-        const total = subtotal + vatAmount;
+        // Apply discount before adding VAT
+        const discountAmount = Math.max(0, Math.min(discount, subtotal));
+        const total = subtotal - discountAmount + vatAmount;
         return { total, vatAmount, subtotal };
     }
 
@@ -107,7 +110,7 @@ export class InvoicesService {
      * Create invoice
      */
     async create(createInvoiceDto: CreateInvoiceDto) {
-        const { items, customerId, type, date, vatEnabled, vatRate, ...invoiceData } = createInvoiceDto;
+        const { items, customerId, type, date, vatEnabled, vatRate, discount, ...invoiceData } = createInvoiceDto;
 
         // Validate customer exists
         const customer = await this.prisma.customer.findUnique({
@@ -158,7 +161,8 @@ export class InvoicesService {
         const code = await this.generateInvoiceCode(type, new Date(date));
 
         // Calculate totals
-        const { total, vatAmount, subtotal } = this.calculateTotal(items, vatEnabled || false, vatRate);
+        const discountValue = discount && discount > 0 ? discount : 0;
+        const { total, vatAmount, subtotal } = this.calculateTotal(items, vatEnabled || false, vatRate, discountValue);
 
         // Create invoice with items
         const invoice = await this.prisma.invoice.create({
@@ -167,8 +171,8 @@ export class InvoicesService {
                 type,
                 customerId,
                 date: new Date(date),
-                // subtotal: new Prisma.Decimal(subtotal), // TODO: Add to schema
                 total: new Prisma.Decimal(total),
+                discount: new Prisma.Decimal(discountValue),
                 vatEnabled: vatEnabled || false,
                 vatRate: vatRate ? new Prisma.Decimal(vatRate) : null,
                 vatAmount: vatAmount > 0 ? new Prisma.Decimal(vatAmount) : null,
@@ -290,7 +294,7 @@ export class InvoicesService {
     async update(id: string, updateInvoiceDto: UpdateInvoiceDto) {
         const invoice = await this.findOne(id);
 
-        const { items, vatEnabled, vatRate, ...invoiceData } = updateInvoiceDto;
+        const { items, vatEnabled, vatRate, discount, ...invoiceData } = updateInvoiceDto;
 
         // Check customs number uniqueness if it's being updated for IMPORT or TRANSIT
         if (invoiceData.customsNo && (invoice.type === 'IMPORT' || invoice.type === 'TRANSIT')) {
@@ -320,10 +324,12 @@ export class InvoicesService {
         let vatAmount = invoice.vatAmount ? parseFloat(invoice.vatAmount.toString()) : 0;
 
         if (items) {
+            const discountValue = discount !== undefined ? discount : parseFloat(invoice.discount.toString());
             const calculated = this.calculateTotal(
                 items,
                 vatEnabled !== undefined ? vatEnabled : invoice.vatEnabled,
                 vatRate !== undefined ? vatRate : invoice.vatRate ? parseFloat(invoice.vatRate.toString()) : undefined,
+                discountValue,
             );
             total = calculated.total;
             vatAmount = calculated.vatAmount;
@@ -341,6 +347,7 @@ export class InvoicesService {
                 ...invoiceData,
                 ...(invoiceData.date && { date: new Date(invoiceData.date) }),
                 total: new Prisma.Decimal(total),
+                discount: discount !== undefined ? new Prisma.Decimal(discount) : undefined,
                 vatEnabled: vatEnabled !== undefined ? vatEnabled : undefined,
                 vatRate: vatRate !== undefined ? new Prisma.Decimal(vatRate) : undefined,
                 vatAmount: vatAmount > 0 ? new Prisma.Decimal(vatAmount) : null,

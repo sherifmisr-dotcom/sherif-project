@@ -38,6 +38,7 @@ interface Invoice {
   vat_rate?: number;
   vatAmount?: number;
   vat_amount?: number;
+  discount?: number;
   total: number;
   notes?: string;
   customer?: {
@@ -144,6 +145,7 @@ export default function InvoicePreview({ invoice, onClose }: InvoicePreviewProps
   const cargoType = invoice.cargoType || invoice.cargo_type || 'غير محدد';
   const vatRate = invoice.vatRate || invoice.vat_rate || 0;
   const vatAmount = invoice.vatAmount || invoice.vat_amount || 0;
+  const invoiceDiscount = invoice.discount ? parseFloat(invoice.discount.toString()) : 0;
   const invoiceItems = invoice.items || invoice.invoice_items || [];
 
   // Check if VAT is enabled by looking at items or vatAmount
@@ -352,6 +354,14 @@ export default function InvoicePreview({ invoice, onClose }: InvoicePreviewProps
                   <span className="text-sm">الإجمالي قبل الضريبة:</span>
                   <span className="font-semibold font-mono">{formatCurrency(subtotal)} ريال</span>
                 </div>
+
+                {/* Discount */}
+                {invoiceDiscount > 0 && (
+                  <div className="flex justify-between text-red-600">
+                    <span className="text-sm">الخصم:</span>
+                    <span className="font-semibold font-mono">- {formatCurrency(invoiceDiscount)} ريال</span>
+                  </div>
+                )}
 
                 {/* VAT Amount */}
                 <div className="flex justify-between text-gray-700">

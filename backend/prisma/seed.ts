@@ -31,30 +31,6 @@ async function main() {
     console.log('   Password: SuperAdmin@2026');
     console.log('   Super Admin: Yes (hidden from user list)');
 
-    // Create regular Admin user
-    const adminPassword = await bcrypt.hash('admin123', 10);
-
-    const admin = await prisma.user.upsert({
-        where: { username: 'admin' },
-        update: {
-            isAdmin: true,
-            isSuperAdmin: false,
-            isActive: true,
-        },
-        create: {
-            username: 'admin',
-            passwordHash: adminPassword,
-            isAdmin: true,
-            isSuperAdmin: false,
-            isActive: true,
-        },
-    });
-
-    console.log('✅ Admin user created:', admin.username);
-    console.log('   Username: admin');
-    console.log('   Password: admin123');
-    console.log('   Admin: Yes');
-
     // Create default settings
     await prisma.companySetting.upsert({
         where: { id: 'single_row' },

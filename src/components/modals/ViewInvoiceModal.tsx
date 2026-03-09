@@ -35,6 +35,7 @@ interface Invoice {
     vat_rate?: number;
     vatAmount?: number;
     vat_amount?: number;
+    discount?: number;
     total: number;
     notes?: string;
     customer?: {
@@ -88,6 +89,7 @@ export default function ViewInvoiceModal({ isOpen, invoice, onClose, onPrint }: 
     const cargoType = invoice.cargoType || invoice.cargo_type || 'غير محدد';
     const vatRate = invoice.vatRate || invoice.vat_rate || 0;
     const vatAmount = invoice.vatAmount || invoice.vat_amount || 0;
+    const invoiceDiscount = invoice.discount ? parseFloat(invoice.discount.toString()) : 0;
     const invoiceItems = invoice.items || invoice.invoice_items || [];
 
     // Determine VAT status
@@ -303,6 +305,13 @@ export default function ViewInvoiceModal({ isOpen, invoice, onClose, onPrint }: 
                                             <span>الإجمالي قبل الضريبة:</span>
                                             <span className="font-mono">{formatCurrency(subtotal)} ريال</span>
                                         </div>
+
+                                        {invoiceDiscount > 0 && (
+                                            <div className="flex items-center justify-between text-red-600 dark:text-red-400 text-sm">
+                                                <span>الخصم:</span>
+                                                <span className="font-mono font-bold">- {formatCurrency(invoiceDiscount)} ريال</span>
+                                            </div>
+                                        )}
 
                                         <div className="flex items-center justify-between text-gray-600 dark:text-gray-400 text-sm pb-3 border-b border-blue-200 dark:border-blue-800/50">
                                             <span>مبلغ ضريبة القيمة المضافة:</span>

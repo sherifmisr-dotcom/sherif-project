@@ -86,6 +86,8 @@ export default function TransitInvoice() {
   const [customsFeeAmount, setCustomsFeeAmount] = useState<number | null>(null);
   const [autoClearanceFees, setAutoClearanceFees] = useState(false);
   const [invoiceTotalAmount, setInvoiceTotalAmount] = useState<number>(0);
+  const [discountEnabled, setDiscountEnabled] = useState(false);
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
 
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: crypto.randomUUID(), description: '', unitPrice: 0, quantity: 1, vatRate: 0, amount: 0 },
@@ -328,6 +330,9 @@ export default function TransitInvoice() {
 
     const subtotal = itemsSubtotal + clearanceFees;
 
+    // Apply discount
+    const discount = discountEnabled ? Math.max(0, Math.min(discountAmount, subtotal)) : 0;
+
     // Calculate VAT from individual item rates (clearance fees have 0% VAT)
     const vatAmount = items.reduce((sum, item) => {
       const itemSubtotal = (item.unitPrice || 0) * (item.quantity || 1);
@@ -335,8 +340,8 @@ export default function TransitInvoice() {
       return sum + itemVat;
     }, 0);
 
-    const total = subtotal + vatAmount;
-    return { subtotal, vatAmount, total, clearanceFees, itemsSubtotal };
+    const total = subtotal - discount + vatAmount;
+    return { subtotal, vatAmount, total, clearanceFees, itemsSubtotal, discount };
   };
 
   const onSubmit = async (data: InvoiceFormData) => {
@@ -361,6 +366,7 @@ export default function TransitInvoice() {
         vatEnabled: applyVAT,
         vatRate: data.vat_rate,
         notes: data.notes || undefined,
+        discount: discountEnabled ? discountAmount : 0,
         items: items
           .filter((item, index) => {
             // For clearance row (first item when auto clearance is on), include only if clearanceFees > 0
@@ -414,6 +420,8 @@ export default function TransitInvoice() {
       setItems([{ id: crypto.randomUUID(), description: '', unitPrice: 0, quantity: 1, vatRate: 0, amount: 0 }]);
       setAutoClearanceFees(false);
       setInvoiceTotalAmount(0);
+      setDiscountEnabled(false);
+      setDiscountAmount(0);
       loadInvoices();
     } catch (error: any) {
       console.error('Error saving invoice:', error);
@@ -512,6 +520,16 @@ export default function TransitInvoice() {
         });
         if (hasVAT) {
           setApplyVAT(true);
+        }
+
+        // Restore discount
+        const invoiceDiscount = invoice.discount ? parseFloat(invoice.discount.toString()) : 0;
+        if (invoiceDiscount > 0) {
+          setDiscountEnabled(true);
+          setDiscountAmount(invoiceDiscount);
+        } else {
+          setDiscountEnabled(false);
+          setDiscountAmount(0);
         }
 
         setShowModal(true);
@@ -1346,6 +1364,54 @@ export default function TransitInvoice() {
                     })}
                   </div>
 
+                  {/* Discount Toggle */}
+                  <div className="mt-4">
+                    <div className={`border-2 rounded-xl p-4 transition-all duration-200 ${discountEnabled
+                        ? 'bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 border-red-300 dark:border-red-700'
+                        : 'bg-gray-50 dark:bg-gray-700/30 border-gray-200 dark:border-gray-600'
+                      }`}>
+                      <div className="flex items-center justify-between">
+                        <label className="inline-flex items-center gap-3 cursor-pointer select-none">
+                          <div className="relative">
+                            <input
+                              type="checkbox"
+                              checked={discountEnabled}
+                              onChange={(e) => {
+                                setDiscountEnabled(e.target.checked);
+                                if (!e.target.checked) setDiscountAmount(0);
+                              }}
+                              className="sr-only peer"
+                            />
+                            <div className="w-10 h-5 bg-gray-300 dark:bg-gray-600 peer-checked:bg-red-500 rounded-full transition-colors"></div>
+                            <div className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-5"></div>
+                          </div>
+                          <div>
+                            <span className={`text-sm font-bold block ${discountEnabled ? 'text-red-700 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                              خصم على الفاتورة
+                            </span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {discountEnabled ? 'سيتم خصم المبلغ من الإجمالي' : 'تفعيل لإضافة خصم'}
+                            </span>
+                          </div>
+                        </label>
+                        {discountEnabled && (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              value={discountAmount || ''}
+                              onChange={(e) => setDiscountAmount(parseFloat(e.target.value) || 0)}
+                              placeholder="مبلغ الخصم"
+                              min="0"
+                              step="0.01"
+                              className="w-36 px-3 py-2 border-2 border-red-300 dark:border-red-600 rounded-lg bg-white dark:bg-gray-700 text-red-700 dark:text-red-300 font-bold text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                            />
+                            <span className="text-sm font-medium text-red-600 dark:text-red-400">ريال</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
                       <div className="space-y-3">
@@ -1354,6 +1420,14 @@ export default function TransitInvoice() {
                           <span>الإجمالي قبل الضريبة:</span>
                           <span className="font-semibold">{subtotal.toFixed(2)} ريال</span>
                         </div>
+
+                        {/* Discount */}
+                        {discountEnabled && discountAmount > 0 && (
+                          <div className="flex justify-between text-red-600 dark:text-red-400">
+                            <span>الخصم:</span>
+                            <span className="font-semibold">- {Math.min(discountAmount, subtotal).toFixed(2)} ريال</span>
+                          </div>
+                        )}
 
                         {/* VAT Amount */}
                         <div className="flex justify-between text-gray-700 dark:text-gray-300">
@@ -1381,6 +1455,8 @@ export default function TransitInvoice() {
                       setItems([{ id: crypto.randomUUID(), description: '', unitPrice: 0, quantity: 1, vatRate: 0, amount: 0 }]);
                       setAutoClearanceFees(false);
                       setInvoiceTotalAmount(0);
+                      setDiscountEnabled(false);
+                      setDiscountAmount(0);
                     }}
                     className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >

@@ -105,6 +105,11 @@ export class CreateInvoiceDto {
     @IsString()
     notes?: string;
 
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsNumber()
+    discount?: number;
+
     @ApiProperty({ type: [InvoiceItemDto] })
     @IsArray()
     @ValidateNested({ each: true })
@@ -157,6 +162,11 @@ export class UpdateInvoiceDto {
     @IsOptional()
     @IsString()
     notes?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsNumber()
+    discount?: number;
 
     @ApiPropertyOptional({ type: [InvoiceItemDto] })
     @IsOptional()

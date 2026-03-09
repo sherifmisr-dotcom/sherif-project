@@ -10,6 +10,7 @@ export const generateCompleteInvoiceHTML = (invoice: any, settings: any, qrCodeD
   const cargoType = invoice.cargoType || invoice.cargo_type || 'غير محدد';
   const invoiceItems = invoice.items || invoice.invoice_items || [];
   const vatAmount = invoice.vatAmount || invoice.vat_amount || 0;
+  const invoiceDiscount = invoice.discount ? parseFloat(invoice.discount.toString()) : 0;
 
   // Check if VAT is enabled by looking at items or vatAmount
   const hasVAT = invoiceItems.some((item: any) => {
@@ -203,6 +204,12 @@ export const generateCompleteInvoiceHTML = (invoice: any, settings: any, qrCodeD
               <span style="font-size: 14px;">الإجمالي قبل الضريبة:</span>
               <span style="font-weight: 600;">${formatCurrency(subtotal)} ريال</span>
             </div>
+            ${invoiceDiscount > 0 ? `
+            <div style="margin-bottom: 8px; display: flex; justify-content: space-between; color: #dc2626;">
+              <span style="font-size: 14px;">الخصم:</span>
+              <span style="font-weight: 600;">- ${formatCurrency(invoiceDiscount)} ريال</span>
+            </div>
+            ` : ''}
             <div style="margin-bottom: 8px; display: flex; justify-content: space-between; color: #374151;">
               <span style="font-size: 14px;">مبلغ الضريبة:</span>
               <span style="font-weight: 600;">${formatCurrency(vatAmount)} ريال</span>
